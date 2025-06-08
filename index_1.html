@@ -37,78 +37,42 @@
       <h5 class="mt-4">Items Table</h5>
       <div class="table-responsive">
         <table id="dataTable" class="table table-bordered table-striped align-middle">
-<!-- Replace the previous HTML table & JS with this full version -->
-<thead class="table-light">
-  <tr>
-    <th>Item Name</th>
-    <th>Price</th>
-    <th>Barcode Number</th>
-    <th>Quantity</th>
-    <th>Unit</th>
-  </tr>
-</thead>
-<tbody>
-  <tr>
-    <td contenteditable="true">Sample Item</td>
-    <td contenteditable="true">100</td>
-    <td contenteditable="true">123456789012</td>
-    <td contenteditable="true">2</td>
-    <td>
-      <select class="form-select form-select-sm">
-        <option value="Box">Box</option>
-        <option value="Pcs">Pcs</option>
-        <option value="Numbers">Numbers</option>
-        <option value="Pairs">Pairs</option>
-      </select>
-    </td>
-  </tr>
-</tbody>
-
+          <thead class="table-light">
+            <tr>
+              <th>Item Name</th>
+              <th>Price</th>
+              <th>Barcode Number</th>
+              <th>Quantity</th>
+              <th>Unit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td contenteditable="true">Sample Item</td>
+              <td contenteditable="true">100</td>
+              <td>
+                <div class="input-group input-group-sm">
+                  <input type="text" class="form-control barcode-input" value="123456">
+                  <button class="btn btn-outline-secondary" type="button" onclick="generateRandom6Digit(this)">🔄</button>
+                </div>
+              </td>
+              <td contenteditable="true">2</td>
+              <td>
+                <select class="form-select form-select-sm">
+                  <option value="Box">Box</option>
+                  <option value="Pcs">Pcs</option>
+                  <option value="Numbers">Numbers</option>
+                  <option value="Pairs">Pairs</option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
 
       <div class="mt-3 d-flex gap-2">
         <button type="button" onclick="addRow()" class="btn btn-outline-primary">➕ Add Row</button>
         <button type="button" onclick="generatePDF()" class="btn btn-success">🧾 Generate PDF</button>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">⬇️ Export Table to PDF</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Export Modal -->
-<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Select Columns for PDF Export</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="form-check">
-          <input class="form-check-input export-col" type="checkbox" value="0" id="colItem" checked>
-          <label class="form-check-label" for="colItem">Item Name</label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input export-col" type="checkbox" value="1" id="colPrice" checked>
-          <label class="form-check-label" for="colPrice">Price</label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input export-col" type="checkbox" value="2" id="colBarcode" checked>
-          <label class="form-check-label" for="colBarcode">Barcode Number</label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input export-col" type="checkbox" value="3" id="colQty" checked>
-          <label class="form-check-label" for="colQty">Quantity</label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input export-col" type="checkbox" value="4" id="colUnit" checked>
-          <label class="form-check-label" for="colUnit">Unit</label>
-        </div>
-
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-success" onclick="exportTableToPDF()">Download PDF</button>
       </div>
     </div>
   </div>
@@ -121,7 +85,12 @@ function addRow() {
   newRow.innerHTML = `
     <td contenteditable="true">New Item</td>
     <td contenteditable="true">0</td>
-    <td contenteditable="true">000000000000</td>
+    <td>
+      <div class="input-group input-group-sm">
+        <input type="text" class="form-control barcode-input" value="000000">
+        <button class="btn btn-outline-secondary" type="button" onclick="generateRandom6Digit(this)">🔄</button>
+      </div>
+    </td>
     <td contenteditable="true">1</td>
     <td>
       <select class="form-select form-select-sm">
@@ -135,7 +104,11 @@ function addRow() {
   tableBody.appendChild(newRow);
 }
 
- 
+function generateRandom6Digit(button) {
+  const randomNumber = Math.floor(100000 + Math.random() * 900000).toString();
+  const input = button.closest('.input-group').querySelector('.barcode-input');
+  input.value = randomNumber;
+}
 
 async function generatePDF() {
   const { jsPDF } = window.jspdf;
@@ -179,7 +152,7 @@ async function generatePDF() {
 
     const itemName = cells[0].innerText.trim();
     const price = cells[1].innerText.trim();
-    const barcode = cells[2].innerText.trim();
+    const barcode = cells[2].querySelector("input")?.value.trim(); // Updated
     const quantity = parseInt(cells[3].innerText.trim());
 
     for (let i = 0; i < quantity; i++) {
@@ -243,89 +216,6 @@ async function generatePDF() {
 
   window.open(doc.output('bloburl'), '_blank').print();
 }
-
-function exportTableToPDF() {
-  const selectedCols = Array.from(document.querySelectorAll(".export-col:checked")).map(cb => parseInt(cb.value));
-  if (selectedCols.length === 0) {
-    alert("Please select at least one column.");
-    return;
-  }
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  const headers = ["Item Name", "Price/unit", "HSN Code", "Quantity", "Unit"];
-  const selectedHeaders = headers.filter((_, index) => selectedCols.includes(index));
-  selectedHeaders.push("Discount");
-  selectedHeaders.push("GST (5%)");
-
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-
-  let y = 20;
-  const rowHeight = 10;
-  const cellWidth = 28;
-  const xStart = 4;
-
-  // Draw headers
-  selectedHeaders.forEach((header, i) => {
-    const x = xStart + i * cellWidth;
-    doc.text(header, x + 2, y + 7);
-    doc.rect(x, y, cellWidth, rowHeight);
-  });
-
-  y += rowHeight;
-  doc.setFontSize(8);
-  const rows = document.querySelectorAll("#dataTable tbody tr");
-  rows.forEach(row => {
-    const cells = row.querySelectorAll("td, select");
-    let price = 0;
-
-    selectedCols.forEach((colIdx, i) => {
-      let text = "";
-      if (colIdx === 4) {
-        text = row.querySelector("select")?.value || "";
-      } else {
-        text = cells[colIdx]?.innerText?.trim() || "";
-        if (colIdx === 1) {
-          price = parseFloat(text) || 0;
-        }
-      }
-
-      const x = xStart + i * cellWidth;
-      doc.setFont("helvetica", "normal");
-      doc.text(text, x + 2, y + 7);
-      doc.rect(x, y, cellWidth, rowHeight);
-    });
-
-    // Discount (empty) and GST (5% of price)
-    const startX = xStart + selectedCols.length * cellWidth;
-    doc.rect(startX, y, cellWidth, rowHeight); // Empty Discount
-    const gstValue = (price * 0.05).toFixed(2);
-    doc.text(gstValue.toString(), startX + cellWidth + 2, y + 7);
-    doc.rect(startX + cellWidth, y, cellWidth, rowHeight); // GST
-
-    y += rowHeight;
-
-    if (y + rowHeight > 280) {
-      doc.addPage();
-      y = 20;
-      selectedHeaders.forEach((header, i) => {
-        const x = xStart + i * cellWidth;
-        doc.setFont("helvetica", "bold");
-        doc.text(header, x + 2, y + 7);
-        doc.rect(x, y, cellWidth, rowHeight);
-      });
-      y += rowHeight;
-    }
-  });
-
-  doc.save("table_data.pdf");
-
-  const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
-  modal.hide();
-}
-
 </script>
 
 </body>
