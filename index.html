@@ -14,7 +14,7 @@
   <style>
     body {
       background-color: #f8f9fa;
-      padding-top: 70px;
+      /*padding-top: 70px;*/
       /* space for navbar */
     }
 
@@ -46,15 +46,32 @@
 
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-    <div class="container">
-      <a class="navbar-brand" href="#">Barcode Tool</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+<!-- Just an image -->
+<nav class="navbar navbar-expand-lg"style="background-color: #e3f2fd;" data-bs-theme="light">
+  <div class="container">
+    <a class="navbar-brand" href="#">
+      <img src="logo.png" alt="Logo" width="40" height="40" class="d-inline-block align-text-top">
+      InstantToolbox
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            A4 Barcode Generator
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#singlegen">Single Barcode Bulk Gen.</a></li>
+            <li><a class="dropdown-item" href="index_1.html">Multi Barcode Bulk Gen.</a></li>
+          </ul>
+        </li>
+      </ul>
     </div>
-  </nav>
+  </div>
+</nav>
+
   <!-- Poster Banner -->
   <!-- Fullscreen Poster Section -->
   <section class="poster-wrapper d-flex align-items-center justify-content-center">
@@ -62,7 +79,8 @@
   </section>
 
   <!-- Main Content -->
-  <div class="container">
+   <section id="singlegen">
+      <div class="container">
     <div class="form-section">
       <h2 class="text-center mb-4">Generate Barcode Labels PDF</h2>
       <div class="row g-3">
@@ -121,6 +139,8 @@
       </div>
     </div>
   </div>
+   </section>
+
 
   <canvas id="barcodeCanvas" style="display:none;"></canvas>
 
@@ -154,7 +174,7 @@
       const startFrom = parseInt(document.getElementById("startFrom").value);
       const labelImgFile = document.getElementById("labelImg").files[0];
       const canvas = document.getElementById("barcodeCanvas");
-
+      
       const doc = new jsPDF("p", "mm", "a4");
       const pageWidth = 210;
       const pageHeight = 297;
@@ -192,7 +212,7 @@
 
         console.log(barcode);
         JsBarcode(canvas, barcode, {
-          format: "code128",
+          format: "CODE39",
           displayValue: false,
           width: 1.5,
           height: 8,
@@ -222,7 +242,7 @@
         doc.addImage(barcodeImg, "PNG", barcodeImgX, barcodeImgY, barcodeImgWidth, barcodeImgHeight);
 
         // Barcode Number (below barcode)
-        doc.setFont("courier", "normal");
+        doc.setFont("courier", "bold");
         const barcodeTextWidth = doc.getTextWidth(barcode);
         doc.text(barcode, x + (labelWidth - barcodeTextWidth) / 2, barcodeImgY + barcodeImgHeight + 4);
 
@@ -233,7 +253,7 @@
         doc.text(product, x + (labelWidth - productTextWidth) / 2, barcodeImgY + barcodeImgHeight + 8);
 
         // Price
-        const priceText = `Price: ${price}`;
+        const priceText = `Rs.${price}`;
         const priceTextWidth = doc.getTextWidth(priceText);
         doc.text(priceText, x + (labelWidth - priceTextWidth) / 2, barcodeImgY + barcodeImgHeight + 12);
 
