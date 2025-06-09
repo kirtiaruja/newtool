@@ -291,7 +291,7 @@ function exportTableToPDF() {
   });
 
   y += rowHeight;
-  doc.setFontSize(8);
+  doc.setFontSize(5);
   const rows = document.querySelectorAll("#dataTable tbody tr");
   rows.forEach(row => {
     const cells = row.querySelectorAll("td, select");
@@ -316,7 +316,7 @@ function exportTableToPDF() {
       }
 
       const x = xStart + i * cellWidth;
-      doc.setFont("helvetica", "normal");
+      doc.setFont("helvetica", "bold");
       doc.text(text, x + 2, y + 7);
       doc.rect(x, y, cellWidth, rowHeight);
     });
