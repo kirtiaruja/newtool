@@ -280,22 +280,30 @@ function exportTableToPDF() {
 
   let y = 20;
   const rowHeight = 10;
-  const cellWidth = 28;
   const xStart = 4;
 
+  // Define widths per column (index aligned with selectedHeaders)
+  const columnWidths = selectedHeaders.map(header => {
+    if (header === "Item Name") return 60;
+    if (["Price/unit", "Quantity", "HSN Code", "GST (5%)", "Discount"].includes(header)) return 20;
+    return 25; // default width
+  });
+
   // Draw headers
+  let x = xStart;
   selectedHeaders.forEach((header, i) => {
-    const x = xStart + i * cellWidth;
-    doc.text(header, x + 2, y + 7);
-    doc.rect(x, y, cellWidth, rowHeight);
+    doc.text(header, x + 1, y + 7);
+    doc.rect(x, y, columnWidths[i], rowHeight);
+    x += columnWidths[i];
   });
 
   y += rowHeight;
-  doc.setFontSize(5);
+  doc.setFontSize(9);
   const rows = document.querySelectorAll("#dataTable tbody tr");
   rows.forEach(row => {
     const cells = row.querySelectorAll("td, select");
     let price = 0;
+    x = xStart;
 
     selectedCols.forEach((colIdx, i) => {
       let text = "";
@@ -304,7 +312,6 @@ function exportTableToPDF() {
       } else {
         text = cells[colIdx]?.innerText?.trim() || "";
         if (colIdx === 2) {
-          // Barcode Number column
           text = cells[colIdx]?.querySelector('input')?.value?.trim() || "";
         } else {
           text = cells[colIdx]?.innerText?.trim() || "";
@@ -312,32 +319,35 @@ function exportTableToPDF() {
             price = parseFloat(text) || 0;
           }
         }
-
       }
 
-      const x = xStart + i * cellWidth;
       doc.setFont("helvetica", "bold");
-      doc.text(text, x + 2, y + 7);
-      doc.rect(x, y, cellWidth, rowHeight);
+      doc.text(text, x + 1, y + 7);
+      doc.rect(x, y, columnWidths[i], rowHeight);
+      x += columnWidths[i];
     });
 
-    // Discount (empty) and GST (5% of price)
-    const startX = xStart + selectedCols.length * cellWidth;
-    doc.rect(startX, y, cellWidth, rowHeight); // Empty Discount
+    // Discount and GST
+    const discountWidth = 20;
+    const gstWidth = 20;
+    doc.rect(x, y, discountWidth, rowHeight); // empty Discount
+    x += discountWidth;
+
     const gstValue = (price * 0.05).toFixed(2);
-    doc.text(gstValue.toString(), startX + cellWidth + 2, y + 7);
-    doc.rect(startX + cellWidth, y, cellWidth, rowHeight); // GST
+    doc.text(gstValue.toString(), x + 1, y + 7);
+    doc.rect(x, y, gstWidth, rowHeight); // GST
 
     y += rowHeight;
 
     if (y + rowHeight > 280) {
       doc.addPage();
       y = 20;
+      x = xStart;
       selectedHeaders.forEach((header, i) => {
-        const x = xStart + i * cellWidth;
         doc.setFont("helvetica", "bold");
-        doc.text(header, x + 2, y + 7);
-        doc.rect(x, y, cellWidth, rowHeight);
+        doc.text(header, x + 1, y + 7);
+        doc.rect(x, y, columnWidths[i], rowHeight);
+        x += columnWidths[i];
       });
       y += rowHeight;
     }
@@ -348,6 +358,7 @@ function exportTableToPDF() {
   const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
   modal.hide();
 }
+
 
 </script>
 
