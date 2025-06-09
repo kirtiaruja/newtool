@@ -165,12 +165,12 @@ async function generatePDF() {
 
   const pageWidth = 210;
   const pageHeight = 297;
-  const margin = 10;
+  const margin = 6;
 
   const labelWidth = (pageWidth - 2 * margin) / colsPerPage;
   const labelHeight = (pageHeight - 2 * margin) / rowsPerPage;
 
-  let x = margin;
+  let x = 6;
   let y = 10;
   let col = 0;
   let labelCount = 0;
