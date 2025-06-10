@@ -332,13 +332,7 @@ function exportTableToPDF() {
     const gstWidth = 20;
     doc.rect(x, y, discountWidth, rowHeight); // empty Discount
     x += discountWidth;
-
-    // Discount and GST
-    const discountWidth = 20;
-    const gstWidth = 20;
-    doc.rect(x, y, discountWidth, rowHeight); // empty Discount
-    x += discountWidth;
-
+    
     const gstValue = (price * 0.05).toFixed(2);
     doc.text(gstValue.toString(), x + 1, y + 7);
     doc.rect(x, y, gstWidth, rowHeight); // GST
