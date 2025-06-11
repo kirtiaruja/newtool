@@ -167,22 +167,11 @@ async function generatePDF() {
   const pageHeight = 297;
   const margin = 6;
 
-  const labelWidth = (pageWidth - 2 * margin) / colsPerPage;
-  const labelHeight = (pageHeight - 2 * margin) / rowsPerPage;
-
-  let x = 6;
-  let y = 10;
-  let col = 0;
-  let labelCount = 0;
+  const labelWidth = (pageWidth - 4 * margin) / colsPerPage;
+  const labelHeight = (pageHeight - 4 * margin) / rowsPerPage;
 
   const rows = document.querySelectorAll("#dataTable tbody tr");
-
-  // simulate skipped positions for layout only (does not affect first draw)
-  let skip = startPosition - 1;
-  labelCount = skip;
-  col = skip % colsPerPage;
-  x = margin + col * labelWidth;
-  y = margin + Math.floor(skip / colsPerPage) * labelHeight;
+  let labelIndex = startPosition - 1;
 
   for (const tableRow of rows) {
     const cells = tableRow.querySelectorAll("td");
@@ -194,12 +183,15 @@ async function generatePDF() {
     const quantity = parseInt(cells[3].innerText.trim());
 
     for (let i = 0; i < quantity; i++) {
-      if (y + labelHeight > pageHeight - margin) {
-        doc.addPage();
-        x = margin;
-        y = margin;
-        col = 0;
-      }
+      const pageIndex = Math.floor(labelIndex / (rowsPerPage * colsPerPage));
+      const labelIndexInPage = labelIndex % (rowsPerPage * colsPerPage);
+      const row = Math.floor(labelIndexInPage / colsPerPage);
+      const col = labelIndexInPage % colsPerPage;
+
+      if (labelIndex > 0 && labelIndexInPage === 0) doc.addPage();
+
+      const x = margin + col * labelWidth - 1;
+      const y = margin + row * labelHeight + 6;
 
       const canvas = document.createElement("canvas");
       try {
@@ -236,15 +228,7 @@ async function generatePDF() {
         const priceWidth = doc.getTextWidth(priceText);
         doc.text(priceText, x + xOffset + (labelWidth - priceWidth) / 2, barcodeY + barcodeImgHeight + 12);
 
-        labelCount++;
-        col++;
-        if (col >= colsPerPage) {
-          col = 0;
-          x = margin;
-          y += labelHeight;
-        } else {
-          x += labelWidth;
-        }
+        labelIndex++;
       } catch (e) {
         console.warn(`❌ Skipping invalid barcode: "${barcode}"`, e);
         continue;
@@ -277,14 +261,14 @@ function exportTableToPDF() {
   const rowHeight = 10;
   const xStart = 4;
 
-  // Define widths per column (index aligned with selectedHeaders)
+  // Define custom column widths
   const columnWidths = selectedHeaders.map(header => {
     if (header === "Item Name") return 60;
     if (["Price/unit", "Quantity", "HSN Code", "GST (5%)", "Discount"].includes(header)) return 20;
-    return 25; // default width
+    return 25;
   });
 
-  // Draw headers
+  // Draw table header
   let x = xStart;
   selectedHeaders.forEach((header, i) => {
     doc.text(header, x + 1, y + 7);
@@ -295,10 +279,10 @@ function exportTableToPDF() {
   y += rowHeight;
   doc.setFontSize(9);
   const rows = document.querySelectorAll("#dataTable tbody tr");
+
   rows.forEach(row => {
     const cells = row.querySelectorAll("td, select");
     let price = 0;
-    x = xStart;
     x = xStart;
 
     selectedCols.forEach((colIdx, i) => {
@@ -306,51 +290,39 @@ function exportTableToPDF() {
       if (colIdx === 4) {
         text = row.querySelector("select")?.value || "";
       } else {
-        text = cells[colIdx]?.innerText?.trim() || "";
         if (colIdx === 2) {
           text = cells[colIdx]?.querySelector('input')?.value?.trim() || "";
         } else {
           text = cells[colIdx]?.innerText?.trim() || "";
-          if (colIdx === 1) {
-            price = parseFloat(text) || 0;
-          }
+          if (colIdx === 1) price = parseFloat(text) || 0;
         }
       }
 
-      doc.setFont("helvetica", "bold");
-      doc.text(text, x + 1, y + 7);
-      doc.rect(x, y, columnWidths[i], rowHeight);
-      x += columnWidths[i];
-      doc.setFont("helvetica", "bold");
       doc.text(text, x + 1, y + 7);
       doc.rect(x, y, columnWidths[i], rowHeight);
       x += columnWidths[i];
     });
 
-    // Discount and GST
+    // Add Discount (blank) and GST (5% of price)
     const discountWidth = 20;
     const gstWidth = 20;
-    doc.rect(x, y, discountWidth, rowHeight); // empty Discount
+
+    doc.rect(x, y, discountWidth, rowHeight); // empty discount
     x += discountWidth;
-    
+
     const gstValue = (price * 0.05).toFixed(2);
     doc.text(gstValue.toString(), x + 1, y + 7);
-    doc.rect(x, y, gstWidth, rowHeight); // GST
-    doc.text(gstValue.toString(), x + 1, y + 7);
-    doc.rect(x, y, gstWidth, rowHeight); // GST
+    doc.rect(x, y, gstWidth, rowHeight);
 
     y += rowHeight;
 
+    // Add new page if necessary
     if (y + rowHeight > 280) {
       doc.addPage();
       y = 20;
       x = xStart;
-      x = xStart;
+
       selectedHeaders.forEach((header, i) => {
-        doc.setFont("helvetica", "bold");
-        doc.text(header, x + 1, y + 7);
-        doc.rect(x, y, columnWidths[i], rowHeight);
-        x += columnWidths[i];
         doc.text(header, x + 1, y + 7);
         doc.rect(x, y, columnWidths[i], rowHeight);
         x += columnWidths[i];
