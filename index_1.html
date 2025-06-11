@@ -161,14 +161,18 @@ async function generatePDF() {
   const rowsPerPage = parseInt(document.getElementById("rowsPerPage").value);
   const colsPerPage = parseInt(document.getElementById("columnsPerPage").value);
   const startPosition = parseInt(document.getElementById("startPosition").value);
-  const xOffset = 1;
+  const xOffset = 4;
 
   const pageWidth = 210;
   const pageHeight = 297;
   const margin = 6;
 
-  const labelWidth = (pageWidth - 4 * margin) / colsPerPage;
-  const labelHeight = (pageHeight - 4 * margin) / rowsPerPage;
+  // Gap between labels
+  const labelGapX = 2; // Horizontal gap in mm
+  const labelGapY = 4; // Vertical gap in mm
+
+  const labelWidth = ((pageWidth - 4 * margin) - (colsPerPage - 1) * labelGapX) / colsPerPage;
+  const labelHeight = ((pageHeight - 4 * margin) - (rowsPerPage - 1) * labelGapY) / rowsPerPage;
 
   const rows = document.querySelectorAll("#dataTable tbody tr");
   let labelIndex = startPosition - 1;
@@ -190,8 +194,9 @@ async function generatePDF() {
 
       if (labelIndex > 0 && labelIndexInPage === 0) doc.addPage();
 
-      const x = margin + col * labelWidth - 1;
-      const y = margin + row * labelHeight + 6;
+      // Apply horizontal and vertical gap
+      const x = margin + col * (labelWidth + labelGapX) - 1;
+      const y = margin + row * (labelHeight + labelGapY) + 6;
 
       const canvas = document.createElement("canvas");
       try {
